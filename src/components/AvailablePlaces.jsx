@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Places from "./Places.jsx";
+import Error from "./Error.jsx";
 
 export default function AvailablePlaces({ onSelectPlace }) {
 	const [AvailablePlaces, setAvailablePlaces] = useState([]);
@@ -15,15 +16,26 @@ export default function AvailablePlaces({ onSelectPlace }) {
 					throw new Error(`Failed to fetch places`);
 				}
 				const resData = await response.json();
-				setAvailablePlaces(resData.places);
+
+				navigator.geolocation.getCurrentPosition((pos) => {
+					setAvailablePlaces(resData.places);
+				});
 			} catch (error) {
-				setError(error);
+				setError({ message: error.message || "could not fetch places" });
 			}
 			setIsFetching(false);
 		}
 		fetchPlaces();
 	}, []);
 
+	if (error) {
+		return (
+			<Error
+				title="An error occurred!"
+				message={error.message}
+			/>
+		);
+	}
 	return (
 		<Places
 			title="Available Places"
