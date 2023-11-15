@@ -6,12 +6,13 @@ import DeleteConfirmation from "./components/DeleteConfirmation.jsx";
 import logoImg from "./assets/logo.png";
 import AvailablePlaces from "./components/AvailablePlaces.jsx";
 import { updateAvailablePlaces } from "./HTTP.js";
+import Error from "./components/Error.jsx";
 
 function App() {
 	const selectedPlace = useRef();
 
 	const [userPlaces, setUserPlaces] = useState([]);
-
+	const [errorUpdatingPlaces, setErrorUpdatingPlaces] = useState();
 	const [modalIsOpen, setModalIsOpen] = useState(false);
 
 	function handleStartRemovePlace(place) {
@@ -36,7 +37,12 @@ function App() {
 
 		try {
 			await updateAvailablePlaces([selectedPlace, ...userPlaces]);
-		} catch (error) {}
+		} catch (error) {
+			setUserPlaces(userPlaces);
+			setErrorUpdatingPlaces({
+				message: error.message || "could not fetch places",
+			});
+		}
 	}
 
 	const handleRemovePlace = useCallback(async function handleRemovePlace() {
@@ -47,8 +53,24 @@ function App() {
 		setModalIsOpen(false);
 	}, []);
 
+	function handleError() {
+		setErrorUpdatingPlaces(null);
+	}
+
 	return (
 		<>
+			<Modal
+				open={errorUpdatingPlaces}
+				onClose={handleStopRemovePlace}
+			>
+				{errorUpdatingPlaces && (
+					<Error
+						title="An error occurred!"
+						message={errorUpdatingPlaces.message}
+						onConfirm={handleError}
+					></Error>
+				)}
+			</Modal>
 			<Modal
 				open={modalIsOpen}
 				onClose={handleStopRemovePlace}
